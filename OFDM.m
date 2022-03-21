@@ -1,86 +1,88 @@
+%%è¿™ä¸ªæ–‡ä»¶é‡Œé¢å†™çš„æ˜¯OFDMçš„å‘é€æœºéƒ¨åˆ†
+
 clc;
 clear;
 
-N_sc=100;      %ÏµÍ³×ÓÔØ²¨Êı£¨²»°üÀ¨Ö±Á÷ÔØ²¨£©¡¢number of subcarrierA
-N_fft=128;            % FFT ³¤¶È
-N_cp=16;             % Ñ­»·Ç°×º³¤¶È¡¢Cyclic prefix
-N_symbo=N_fft+N_cp;        % 1¸öÍêÕûOFDM·ûºÅ³¤¶È
-N_c=53;             % °üº¬Ö±Á÷ÔØ²¨µÄ×ÜµÄ×ÓÔØ²¨Êı¡¢number of carriers
-M=4;               %4PSKµ÷ÖÆ
-SNR=0:0.5:25;         %·ÂÕæĞÅÔë±È?
-N_frm=20;            % Ã¿ÖÖĞÅÔë±ÈÏÂµÄ·ÂÕæÖ¡Êı¡¢frame
-Nd=30;               % Ã¿Ö¡°üº¬µÄOFDM·ûºÅÊı?
-P_f_inter=6;      %µ¼Æµ¼ä¸ô
-data_station=[];    %µ¼ÆµÎ»ÖÃ
-L=7;                %¾í»ıÂëÔ¼Êø³¤¶È
-tblen=12*L;           %ViterbiÒëÂëÆ÷»ØËİÉî¶È
-stage = 3;          % mĞòÁĞµÄ½×Êı?
-ptap1 = [1 3];      % mĞòÁĞµÄ¼Ä´æÆ÷Á¬½Ó·½Ê½
-regi1 = [1 1 1];    % mĞòÁĞµÄ¼Ä´æÆ÷³õÊ¼Öµ
+N_sc=100;      %ç³»ç»Ÿå­è½½æ³¢æ•°ï¼ˆä¸åŒ…æ‹¬ç›´æµè½½æ³¢ï¼‰ã€number of subcarrierA
+N_fft=128;            % FFT é•¿åº¦
+N_cp=16;             % å¾ªç¯å‰ç¼€é•¿åº¦ã€Cyclic prefix
+N_symbo=N_fft+N_cp;        % 1ä¸ªå®Œæ•´OFDMç¬¦å·é•¿åº¦
+N_c=53;             % åŒ…å«ç›´æµè½½æ³¢çš„æ€»çš„å­è½½æ³¢æ•°ã€number of carriers
+M=4;               %4PSKè°ƒåˆ¶
+SNR=0:0.5:25;         %ä»¿çœŸä¿¡å™ªæ¯”?
+N_frm=20;            % æ¯ç§ä¿¡å™ªæ¯”ä¸‹çš„ä»¿çœŸå¸§æ•°ã€frame
+Nd=30;               % æ¯å¸§åŒ…å«çš„OFDMç¬¦å·æ•°?
+P_f_inter=6;      %å¯¼é¢‘é—´éš”
+data_station=[];    %å¯¼é¢‘ä½ç½®
+L=7;                %å·ç§¯ç çº¦æŸé•¿åº¦
+tblen=12*L;           %Viterbiè¯‘ç å™¨å›æº¯æ·±åº¦
+stage = 3;          % måºåˆ—çš„é˜¶æ•°?
+ptap1 = [1 3];      % måºåˆ—çš„å¯„å­˜å™¨è¿æ¥æ–¹å¼
+regi1 = [1 1 1];    % måºåˆ—çš„å¯„å­˜å™¨åˆå§‹å€¼
 
 
-%% »ù´øÊı¾İÊı¾İ²úÉú
+%% åŸºå¸¦æ•°æ®æ•°æ®äº§ç”Ÿ
 P_data=randi([0 1],1,N_sc*Nd*N_frm);
 
 
-%% ĞÅµÀ±àÂë£¨¾í»ıÂë¡¢»ò½»Ö¯Æ÷£©
-%¾í»ıÂë£ºÇ°Ïò¾À´í·ÇÏßĞÔÂë
-%½»Ö¯£ºÊ¹Í»·¢´íÎó×î´óÏŞ¶ÈµÄ·ÖÉ¢»¯
-trellis = poly2trellis(7,[133 171]);       %(2,1,7)¾í»ı±àÂë
+%% ä¿¡é“ç¼–ç ï¼ˆå·ç§¯ç ã€æˆ–äº¤ç»‡å™¨ï¼‰
+%å·ç§¯ç ï¼šå‰å‘çº é”™éçº¿æ€§ç 
+%äº¤ç»‡ï¼šä½¿çªå‘é”™è¯¯æœ€å¤§é™åº¦çš„åˆ†æ•£åŒ–
+trellis = poly2trellis(7,[133 171]);       %(2,1,7)å·ç§¯ç¼–ç 
 code_data=convenc(P_data,trellis);
 
 
-%% qpskµ÷ÖÆ
-data_temp1= reshape(code_data,log2(M),[])';             %ÒÔÃ¿×é2±ÈÌØ½øĞĞ·Ö×é£¬M=4
-data_temp2= bi2de(data_temp1);                             %¶ş½øÖÆ×ª»¯ÎªÊ®½øÖÆ
-modu_data=pskmod(data_temp2,M,pi/M);              % 4PSKµ÷ÖÆ
+%% qpskè°ƒåˆ¶
+data_temp1= reshape(code_data,log2(M),[])';             %ä»¥æ¯ç»„2æ¯”ç‰¹è¿›è¡Œåˆ†ç»„ï¼ŒM=4
+data_temp2= bi2de(data_temp1);                             %äºŒè¿›åˆ¶è½¬åŒ–ä¸ºåè¿›åˆ¶
+modu_data=pskmod(data_temp2,M,pi/M);              % 4PSKè°ƒåˆ¶
 
-%% À©Æµ
-%¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª%
-%À©ÆµÍ¨ĞÅĞÅºÅËùÕ¼ÓĞµÄÆµ´ø¿í¶ÈÔ¶´óÓÚËù´«ĞÅÏ¢±ØĞèµÄ×îĞ¡´ø¿í
-%¸ù¾İÏãÅ©¶¨Àí£¬À©ÆµÍ¨ĞÅ¾ÍÊÇÓÃ¿í´ø´«Êä¼¼ÊõÀ´»»È¡ĞÅÔë±ÈÉÏµÄºÃ´¦£¬Õâ¾ÍÊÇÀ©ÆµÍ¨ĞÅµÄ»ù±¾Ë¼ÏëºÍÀíÂÛÒÀ¾İ¡£
-%À©Æµ¾ÍÊÇ½«Ò»ÏµÁĞÕı½»µÄÂë×ÖÓë»ù´øµ÷ÖÆĞÅºÅÄÚ»ı
-%À©ÆµºóÊı×ÖÆµÂÊ±ä³ÉÁËÔ­À´µÄm±¶¡£ÂëÆ¬ÊıÁ¿ = 2£¨·ûºÅÊı£©* m£¨À©ÆµÏµÊı£©
-%¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª%
+%% æ‰©é¢‘
+%â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”%
+%æ‰©é¢‘é€šä¿¡ä¿¡å·æ‰€å æœ‰çš„é¢‘å¸¦å®½åº¦è¿œå¤§äºæ‰€ä¼ ä¿¡æ¯å¿…éœ€çš„æœ€å°å¸¦å®½
+%æ ¹æ®é¦™å†œå®šç†ï¼Œæ‰©é¢‘é€šä¿¡å°±æ˜¯ç”¨å®½å¸¦ä¼ è¾“æŠ€æœ¯æ¥æ¢å–ä¿¡å™ªæ¯”ä¸Šçš„å¥½å¤„ï¼Œè¿™å°±æ˜¯æ‰©é¢‘é€šä¿¡çš„åŸºæœ¬æ€æƒ³å’Œç†è®ºä¾æ®ã€‚
+%æ‰©é¢‘å°±æ˜¯å°†ä¸€ç³»åˆ—æ­£äº¤çš„ç å­—ä¸åŸºå¸¦è°ƒåˆ¶ä¿¡å·å†…ç§¯
+%æ‰©é¢‘åæ•°å­—é¢‘ç‡å˜æˆäº†åŸæ¥çš„må€ã€‚ç ç‰‡æ•°é‡ = 2ï¼ˆç¬¦å·æ•°ï¼‰* mï¼ˆæ‰©é¢‘ç³»æ•°ï¼‰
+%â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”%
 
-code = mseq(stage,ptap1,regi1,N_sc);     % À©ÆµÂëµÄÉú³É
-code = code * 2 - 1;        %½«1¡¢0±ä»»Îª1¡¢-1
+code = mseq(stage,ptap1,regi1,N_sc);     % æ‰©é¢‘ç çš„ç”Ÿæˆ
+code = code * 2 - 1;        %å°†1ã€0å˜æ¢ä¸º1ã€-1
 modu_data=reshape(modu_data,N_sc,length(modu_data)/N_sc);
-spread_data = spread(modu_data,code);        % À©Æµ
+spread_data = spread(modu_data,code);        % æ‰©é¢‘
 spread_data=reshape(spread_data,[],1);
 
-%% ²åÈëµ¼Æµ¢‘
+%% æ’å…¥å¯¼é¢‘î•¶
 P_f=3+3*1i;                       %Pilot frequency
-P_f_station=[1:P_f_inter:N_fft];%µ¼ÆµÎ»ÖÃ£¨µ¼ÆµÎ»ÖÃºÜÖØÒª£¬why?£©
-pilot_num=length(P_f_station);%µ¼ÆµÊıÁ¿
+P_f_station=[1:P_f_inter:N_fft];%å¯¼é¢‘ä½ç½®ï¼ˆå¯¼é¢‘ä½ç½®å¾ˆé‡è¦ï¼Œwhy?ï¼‰
+pilot_num=length(P_f_station);%å¯¼é¢‘æ•°é‡
 
-for img=1:N_fft                        %Êı¾İÎ»ÖÃ
-    if mod(img,P_f_inter)~=1          %mod(a,b)¾ÍÊÇÇóµÄÊÇa³ıÒÔbµÄÓàÊı
+for img=1:N_fft                        %æ•°æ®ä½ç½®
+    if mod(img,P_f_inter)~=1          %mod(a,b)å°±æ˜¯æ±‚çš„æ˜¯aé™¤ä»¥bçš„ä½™æ•°
         data_station=[data_station,img];
     end
 end
 data_row=length(data_station);
 data_col=ceil(length(spread_data)/data_row);
 
-pilot_seq=ones(pilot_num,data_col)*P_f;%½«µ¼Æµ·ÅÈë¾ØÕó
-data=zeros(N_fft,data_col);%Ô¤ÉèÕû¸ö¾ØÕó
-data(P_f_station(1:end),:)=pilot_seq;%¶Ôpilot_seq°´ĞĞÈ¡
+pilot_seq=ones(pilot_num,data_col)*P_f;%å°†å¯¼é¢‘æ”¾å…¥çŸ©é˜µ
+data=zeros(N_fft,data_col);%é¢„è®¾æ•´ä¸ªçŸ©é˜µ
+data(P_f_station(1:end),:)=pilot_seq;%å¯¹pilot_seqæŒ‰è¡Œå–
 
 if data_row*data_col>length(spread_data)
-    data2=[spread_data;zeros(data_row*data_col-length(spread_data),1)];%½«Êı¾İ¾ØÕó²¹Æë£¬²¹0ÊÇĞéÔØÆµ~
+    data2=[spread_data;zeros(data_row*data_col-length(spread_data),1)];%å°†æ•°æ®çŸ©é˜µè¡¥é½ï¼Œè¡¥0æ˜¯è™šè½½é¢‘~
 end;
 
-%% ´®²¢×ª»»
+%% ä¸²å¹¶è½¬æ¢
 
 data_seq=reshape(data2,data_row,data_col);
-data(data_station(1:end),:)=data_seq;%½«µ¼ÆµÓëÊı¾İºÏ²¢
+data(data_station(1:end),:)=data_seq;%å°†å¯¼é¢‘ä¸æ•°æ®åˆå¹¶
 
 %% IFFT
 ifft_data=ifft(data); 
 
-%% ²åÈë±£»¤¼ä¸ô¡¢Ñ­»·Ç°×º
-Tx_cd=[ifft_data(N_fft-N_cp+1:end,:);ifft_data];%°ÑifftµÄÄ©Î²N_cp¸öÊı²¹³äµ½×îÇ°Ãæ
-Tx_zero=[zeros(size(ifft_data(N_fft-N_cp+1:end,:)));ifft_data];%¼Ó±£»¤¼ä¸ô
+%% æ’å…¥ä¿æŠ¤é—´éš”ã€å¾ªç¯å‰ç¼€
+Tx_cd=[ifft_data(N_fft-N_cp+1:end,:);ifft_data];%æŠŠifftçš„æœ«å°¾N_cpä¸ªæ•°è¡¥å……åˆ°æœ€å‰é¢
+Tx_zero=[zeros(size(ifft_data(N_fft-N_cp+1:end,:)));ifft_data];%åŠ ä¿æŠ¤é—´éš”
 
 [rx_c_de,Ber,x1,y1] = errorate(Tx_cd,P_f_station,pilot_seq,data_station,spread_data,code,P_data);
 [rx_z_de,Ber1,x2,y2] = errorate(Tx_zero,P_f_station,pilot_seq,data_station,spread_data,code,P_data);
@@ -92,10 +94,10 @@ figure(1);
  semilogy(SNR,Ber,'r-o');
  hold on
  semilogy(SNR,Ber1,'b-o');
- legend('Ñ­»·Ç°×º','0Ç°×º');
+ legend('å¾ªç¯å‰ç¼€','0å‰ç¼€');
  xlabel('SNR');
  ylabel('BER');
- title('ÈğÀûĞÅµÀÏÂÎó±ÈÌØÂÊÇúÏß');
+ title('ç‘åˆ©ä¿¡é“ä¸‹è¯¯æ¯”ç‰¹ç‡æ›²çº¿');
  hold off;
 
  figure(2)
@@ -103,12 +105,12 @@ figure(1);
  x=0:1:50;
  stem(x,P_data(1:51));
  ylabel('amplitude');
- title('·¢ËÍÊı¾İ£¨ÒÔÇ°50¸öÊı¾İÎªÀı)');
- legend('µ÷ÖÆÇ°');
+ title('å‘é€æ•°æ®ï¼ˆä»¥å‰50ä¸ªæ•°æ®ä¸ºä¾‹)');
+ legend('è°ƒåˆ¶å‰');
 
  subplot(2,1,2);
  x=0:1:50;
  stem(x,rx_c_de(1:51));
  ylabel('amplitude');
- title('ÒëÂëºóµÄÊı¾İ£¨ÒÔÇ°50¸öÊı¾İÎªÀı)');
- legend('½âµ÷ºó');
+ title('è¯‘ç åçš„æ•°æ®ï¼ˆä»¥å‰50ä¸ªæ•°æ®ä¸ºä¾‹)');
+ legend('è§£è°ƒå');
