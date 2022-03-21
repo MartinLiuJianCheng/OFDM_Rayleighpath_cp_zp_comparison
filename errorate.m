@@ -5,58 +5,58 @@ N_cp=16;
 N_sc=100;
 M=4;
 tblen=84;
-%% ²¢´®×ª»»
-Tx_data=reshape(Tx_cd,[],1);%ÓÉÓÚ´«ÊäĞèÒª
+%% å¹¶ä¸²è½¬æ¢
+Tx_data=reshape(Tx_cd,[],1);%ç”±äºä¼ è¾“éœ€è¦
 
-%% ĞÅµÀ£¨Í¨¹ı¶à¾­ÈğÀûĞÅµÀ¡¢»òĞÅºÅ¾­¹ıAWGNĞÅµÀ£©
+%% ä¿¡é“ï¼ˆé€šè¿‡å¤šç»ç‘åˆ©ä¿¡é“ã€æˆ–ä¿¡å·ç»è¿‡AWGNä¿¡é“ï¼‰
 Ber=zeros(1,length(SNR));
-fs = 2000;                % Sample rate (Hz)
-pathDelays = [0 0.0001];  % Path delays (s)
-pathPower = [0 -6];       % Path power (dB)
-fD = 5;                   % Maximum Doppler shift (Hz)
-rchan = comm.RayleighChannel('SampleRate',fs, ...
+fs = 2000;                % Sample rate (Hz)                                   %%é‡‡æ ·ç‡
+pathDelays = [0 0.0001];  % Path delays (s)                                    %%ä¿¡é“å»¶è¿Ÿ
+pathPower = [0 -6];       % Path power (dB)                                    %%è·¯å¾„åŠŸç‡
+fD = 5;                   % Maximum Doppler shift (Hz)                         %%æœ€å¤§
+rchan = comm.RayleighChannel('SampleRate',fs, ...                              %%ç‘åˆ©ä¿¡é“
 'PathDelays',pathDelays,'AveragePathGains',pathPower, ...
 'MaximumDopplerShift',fD,'Visualization','Impulse and frequency responses');
 for jj=1:length(SNR)
-    rx_channel=awgn(Tx_data,SNR(jj),'measured');%ÇĞ»»ÈğÀûĞÅµÀ
+    rx_channel=awgn(Tx_data,SNR(jj),'measured');%åˆ‡æ¢ç‘åˆ©ä¿¡é“
      rx_channel=rchan(rx_channel);
 
-%% ´®²¢×ª»»
+%% ä¸²å¹¶è½¬æ¢
     Rx_data1=reshape(rx_channel,N_fft+N_cp,[]);
 
-%% È¥µô±£»¤¼ä¸ô¡¢Ñ­»·Ç°×º
+%% å»æ‰ä¿æŠ¤é—´éš”ã€å¾ªç¯å‰ç¼€
     Rx_data2=Rx_data1(N_cp+1:end,:);
 
 %% FFT
     fft_data=fft(Rx_data2);
 
-%% ĞÅµÀ¹À¼ÆÓë²åÖµ£¨¾ùºâ£©
+%% ä¿¡é“ä¼°è®¡ä¸æ’å€¼ï¼ˆå‡è¡¡ï¼‰
     data3=fft_data(1:N_fft,:);
-    Rx_pilot=data3(P_f_station(1:end),:); %½ÓÊÕµ½µÄµ¼Æµ
+    Rx_pilot=data3(P_f_station(1:end),:); %æ¥æ”¶åˆ°çš„å¯¼é¢‘
     h=Rx_pilot./pilot_seq;
-    H=interp1( P_f_station(1:end)',h,data_station(1:end)','linear','extrap');%·Ö¶ÎÏßĞÔ²åÖµ£º²åÖµµã´¦º¯ÊıÖµÓÉÁ¬½ÓÆä×îÁÚ½üµÄÁ½²àµãµÄÏßĞÔº¯ÊıÔ¤²â¡£¶Ô³¬³öÒÑÖªµã¼¯µÄ²åÖµµãÓÃÖ¸¶¨²åÖµ·½·¨¼ÆËãº¯ÊıÖµ
+    H=interp1( P_f_station(1:end)',h,data_station(1:end)','linear','extrap');%åˆ†æ®µçº¿æ€§æ’å€¼ï¼šæ’å€¼ç‚¹å¤„å‡½æ•°å€¼ç”±è¿æ¥å…¶æœ€é‚»è¿‘çš„ä¸¤ä¾§ç‚¹çš„çº¿æ€§å‡½æ•°é¢„æµ‹ã€‚å¯¹è¶…å‡ºå·²çŸ¥ç‚¹é›†çš„æ’å€¼ç‚¹ç”¨æŒ‡å®šæ’å€¼æ–¹æ³•è®¡ç®—å‡½æ•°å€¼
 
-%% ĞÅµÀĞ£Õı
+%% ä¿¡é“æ ¡æ­£
     data_aftereq=data3(data_station(1:end),:)./H;
-%% ²¢´®×ª»»
+%% å¹¶ä¸²è½¬æ¢
     data_aftereq=reshape(data_aftereq,[],1);
     data_aftereq=data_aftereq(1:length(spread_data));
     data_aftereq=reshape(data_aftereq,N_sc,length(data_aftereq)/N_sc);
 
-%% ½âÀ©
-    demspread_data = despread(data_aftereq,code);       % Êı¾İ½âÀ©
+%% è§£æ‰©
+    demspread_data = despread(data_aftereq,code);       % æ•°æ®è§£æ‰©
 
-%% QPSK½âµ÷
+%% QPSKè§£è°ƒ
     demodulation_data=pskdemod(demspread_data,M,pi/M);
     De_data1 = reshape(demodulation_data,[],1);
     De_data2 = de2bi(De_data1);
     De_Bit = reshape(De_data2',1,[]);
 
-%% £¨½â½»Ö¯£©
-%% ĞÅµÀÒëÂë£¨Î¬ÌØ±ÈÒëÂë£©
+%% ï¼ˆè§£äº¤ç»‡ï¼‰
+%% ä¿¡é“è¯‘ç ï¼ˆç»´ç‰¹æ¯”è¯‘ç ï¼‰
     trellis = poly2trellis(7,[133 171]);
-    rx_c_de = vitdec(De_Bit,trellis,tblen,'trunc','hard');   %Ó²ÅĞ¾ö
+    rx_c_de = vitdec(De_Bit,trellis,tblen,'trunc','hard');   %ç¡¬åˆ¤å†³
 
-%% ¼ÆËãÎóÂëÂÊ
-    [err, Ber(jj)] = biterr(rx_c_de(1:length(P_data)),P_data);%ÒëÂëºóµÄÎóÂëÂÊ
+%% è®¡ç®—è¯¯ç ç‡
+    [err, Ber(jj)] = biterr(rx_c_de(1:length(P_data)),P_data);%è¯‘ç åçš„è¯¯ç ç‡
 end
